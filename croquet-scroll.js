@@ -214,14 +214,13 @@ class View extends Croquet.View {
 
 
 let sessionName = `croquet-iframe`;
-{
-    const searchParams = (new URL(document.location)).searchParams;
-    const name = searchParams.get('name');
-    if(name)
-        sessionName += `-${name}`;
+const searchParams = (new URL(document.location)).searchParams;
+const name = searchParams.get('name');
+if(name) {
+    sessionName += `-${name}`;
+    Croquet.startSession(sessionName, Model, View)
+        .then(session => {
+            const {view} = session;
+            window.view = view;
+        });
 }
-Croquet.startSession(sessionName, Model, View)
-    .then(session => {
-        const {view} = session;
-        window.view = view;
-    });
