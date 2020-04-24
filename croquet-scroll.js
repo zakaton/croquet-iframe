@@ -8,12 +8,20 @@ class Model extends Croquet.Model {
         };
 
         this.subscribe('scroll', 'set', this.setScroll);
+
+        this.subscribe('href', 'set', this.setHref);
     }
 
     setScroll({scrollX, scrollY, viewId}) {
         this.scroll.left = scrollX;
         this.scroll.top = scrollY;
         this.publish('scroll', 'update', viewId);
+    }
+
+    setHref({href, viewId}) {
+        this.href = href;
+        this.scroll.left = this.scroll.top = 0;
+        this.publish('href', 'update', viewId);
     }
 }
 Model.register();
@@ -119,6 +127,20 @@ class UIView extends Croquet.View {
             thisArg : this,
         });
 
+        this.subscribe('href', 'update', this.onHrefUpdate);
+        document.querySelectorAll(`[data-croquet-href]`).forEach(a => {
+            const href = a.dataset.croquetHref;
+            const _a = document.createElement('a');
+            _a.href = href;
+            
+            a.addEventListener('click', event => {
+                const {href} = _a;
+                const {viewId} = this;
+                this.publish('href', 'set', {viewId, href});
+                _a.click();
+            });
+        });
+
         this.reset();
     }
 
@@ -148,6 +170,15 @@ class UIView extends Croquet.View {
             window.scrollTo({top, left});
             this._updateScroll = false;
         }
+    }
+
+    onHrefUpdate(viewId) {
+        if(this.viewId !== viewId)
+            this.updateHref();
+    }
+    updateHref() {
+        if(this.model.href && window.location.href !== this.model.href)
+            window.location.href = this.model.href;
     }
 
     update() {
